@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 RexPro is a binary protocol for Rexster that can be used to send Gremlin
 scripts to a remote Rexster instance.
 DESC
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/lann/rexpro-ruby"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
