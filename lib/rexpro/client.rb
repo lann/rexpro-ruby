@@ -20,13 +20,6 @@ module Rexpro
       @socket = TCPSocket.new @host, @port
     end
 
-    def default_session
-      @default_session ||=
-        Session.new(self,
-                    Rexpro::Message::ZERO_UUID,
-                    Rexpro::Message::CHANNEL_MSGPACK)
-    end
-
     def new_session(*args)
       req = Rexpro::Message::SessionRequest.new(*args)
       resp = request(req)
