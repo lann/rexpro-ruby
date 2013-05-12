@@ -12,6 +12,13 @@ module Rexpro
     def initialize(opts = {})
       @host = opts.delete(:host) || DEFAULT_HOST
       @port = opts.delete(:port) || DEFAULT_PORT
+
+      @request_opts = {}
+      [:channel, :graph_name, :graph_obj_name].each do |key|
+        value = opts.delete(key)
+        @request_opts[key] = value if value
+      end
+
       @socket_opts = opts
       reconnect
     end
@@ -23,12 +30,6 @@ module Rexpro
       rescue TCPTimeout::SocketTimeout => ex
         raise Rexpro::RexproException.new(ex)
       end
-    end
-
-    def new_session(*args)
-      req = Rexpro::Message::SessionRequest.new(*args)
-      resp = request(req)
-      Rexpro::Session.new(self, resp.session_uuid, req.channel, resp.languages)
     end
 
     def request(req)
@@ -50,9 +51,17 @@ module Rexpro
       raise Rexpro::RexproException.new(ex)
     end
 
-    def execute(script, attrs = {})
-      attrs = attrs.merge(script: script)
-      msg = Rexpro::Message::ScriptRequest.new(attrs)
+    def new_session(opts = {})
+      opts = @request_opts.merge(opts)
+      req = Rexpro::Message::SessionRequest.new(opts)
+      resp = request(req)
+      Rexpro::Session.new(self, resp.session_uuid, req.channel, resp.languages)
+    end
+
+    def execute(script, opts = {})
+      opts = @request_opts.merge(opts)
+      opts[:script] = script
+      msg = Rexpro::Message::ScriptRequest.new(opts)
       request(msg)
     end
   end
