@@ -1,4 +1,4 @@
-require 'socket'
+require 'tcp_timeout'
 
 require_relative './session'
 
@@ -10,14 +10,19 @@ module Rexpro
     attr_reader :host, :port, :socket
 
     def initialize(opts = {})
-      @host = opts[:host] || DEFAULT_HOST
-      @port = opts[:port] || DEFAULT_PORT
+      @host = opts.delete(:host) || DEFAULT_HOST
+      @port = opts.delete(:port) || DEFAULT_PORT
+      @socket_opts = opts
       reconnect
     end
 
     def reconnect
       @socket.close if @socket && !@socket.closed?
-      @socket = TCPSocket.new @host, @port
+      begin
+        @socket = TCPTimeout::TCPSocket.new(@host, @port, @socket_opts)
+      rescue TCPTimeout::SocketTimeout => ex
+        raise Rexpro::RexproException.new(ex)
+      end
     end
 
     def new_session(*args)
@@ -41,6 +46,8 @@ module Rexpro
           raise Rexpro::RexproError.new(err_msg)
         end
       end
+    rescue TCPTimeout::SocketTimeout => ex
+      raise Rexpro::RexproException.new(ex)
     end
 
     def execute(script, attrs = {})

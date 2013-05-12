@@ -1,8 +1,11 @@
 module IntegrationHelper
   def client_opts
-    %w[host port].inject({}) do |memo, key|
-      value = ENV["REXPRO_#{key.upcase}"]
-      memo[key.to_sym] = value if value
+    %w[host port connect_timeout read_timeout write_timeout
+    ].inject({}) do |memo, key|
+      if value = ENV["REXPRO_#{key.upcase}"]
+        value = value.to_i if value =~ /\A\d+$\z/
+        memo[key.to_sym] = value
+      end
       memo
     end
   end
