@@ -10,6 +10,7 @@ module Rexpro
     attr_reader :host, :port, :socket
 
     def initialize(opts = {})
+      opts = opts.dup
       @host = opts.delete(:host) || DEFAULT_HOST
       @port = opts.delete(:port) || DEFAULT_PORT
 
