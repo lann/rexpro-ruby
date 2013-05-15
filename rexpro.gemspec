@@ -22,7 +22,7 @@ DESC
 
   spec.add_dependency "msgpack",     "~> 0.5.4"
   spec.add_dependency "uuid",        "~> 2.3.7"
-  spec.add_dependency "tcp_timeout", "~> 0.1.0"
+  spec.add_dependency "tcp_timeout", "~> 0.1.1"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
