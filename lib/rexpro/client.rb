@@ -38,6 +38,7 @@ module Rexpro
 
       Rexpro::Message.read_from(@socket).tap do |resp|
         if resp.request_uuid.bytes.to_a != req.request_uuid.bytes.to_a
+          @socket.close
           raise Rexpro::RexproException,
                 "request uuid of response didn't match request"
         end
@@ -50,6 +51,10 @@ module Rexpro
       end
     rescue TCPTimeout::SocketTimeout => ex
       raise Rexpro::RexproException.new(ex)
+    rescue SystemCallError
+      # Lets not leave an open connection in a potentially bad state
+      @socket.close
+      raise
     end
 
     def new_session(opts = {})
