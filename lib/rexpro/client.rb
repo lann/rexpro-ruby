@@ -28,6 +28,7 @@ module Rexpro
       @socket.close if @socket && !@socket.closed?
       begin
         @socket = TCPTimeout::TCPSocket.new(@host, @port, @socket_opts)
+        @socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
       rescue TCPTimeout::SocketTimeout => ex
         raise Rexpro::RexproException.new(ex)
       end
