@@ -1,0 +1,6 @@
+language: ruby
+before_script: rake run_rexster && sleep 10
+script: rake test
+rvm:
+  - 1.9.3
+  - 2.0.0
