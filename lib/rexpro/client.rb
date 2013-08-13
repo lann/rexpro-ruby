@@ -15,7 +15,7 @@ module Rexpro
       @port = opts.delete(:port) || DEFAULT_PORT
 
       @request_opts = {}
-      [:channel, :graph_name, :graph_obj_name].each do |key|
+      [:graph_name, :graph_obj_name].each do |key|
         value = opts.delete(key)
         @request_opts[key] = value if value
       end
@@ -62,7 +62,7 @@ module Rexpro
       opts = @request_opts.merge(opts)
       req = Rexpro::Message::SessionRequest.new(opts)
       resp = request(req)
-      Rexpro::Session.new(self, resp.session_uuid, req.channel, resp.languages)
+      Rexpro::Session.new(self, resp.session_uuid, resp.languages)
     end
 
     def execute(script, opts = {})
