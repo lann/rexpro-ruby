@@ -5,7 +5,8 @@ require 'uuid'
 
 module Rexpro
   module Message
-    PROTOCOL_VERSION = 0
+    PROTOCOL_VERSION = 1
+    SERIALIZER_TYPE = 0
 
     ZERO_UUID = [0, 0, 0, 0].pack('NNNN')
 
@@ -16,10 +17,6 @@ module Rexpro
     TYPE_CONSOLE_SCRIPT_RESPONSE  = 4
     TYPE_MSGPACK_SCRIPT_RESPONSE  = 5
     TYPE_GRAPHSON_SCRIPT_RESPONSE = 6
-
-    CHANNEL_CONSOLE  = 1
-    CHANNEL_MSGPACK  = 2
-    CHANNEL_GRAPHSON = 3
 
     class << self
       def generate_uuid
@@ -39,12 +36,12 @@ module Rexpro
           raise RexproException, "Unknown protocol version #{version}"
         end
 
-        header = io.read(5)
-        if header.nil? || header.size < 5
+        header = io.read(10)
+        if header.nil? || header.size < 10
           raise RexproException, "Unexpected EOF: #{header.inspect}"
         end
 
-        type, size = header.unpack('CN')
+        serializer_type, reserved, type, size = header.unpack('CNCN')
         type_class = types[type]
         unless type_class
           raise RexproException, "Unknown message type #{type}"
@@ -131,7 +128,7 @@ module Rexpro
 
       def write_to(io)
         body = to_msgpack
-        header = [PROTOCOL_VERSION, self.class.type, body.size].pack('CCN')
+        header = [PROTOCOL_VERSION, SERIALIZER_TYPE, 0, self.class.type, body.size].pack('CCNCN')
         io.write(header)
         io.write(body)
       end
@@ -147,13 +144,8 @@ module Rexpro
     class SessionRequest
       include Base
       self.type = TYPE_SESSION_REQUEST
-      define_fields channel: :to_i, username: :to_s, password: :to_s
+      define_fields username: :to_s, password: :to_s
       define_meta_fields :graph_name, :graph_obj_name, :kill_session
-
-      def initialize(*_)
-        super
-        self.channel ||= CHANNEL_MSGPACK
-      end
     end
 
     class SessionResponse
@@ -167,14 +159,13 @@ module Rexpro
       include Base
       self.type = TYPE_SCRIPT_REQUEST
       define_fields language_name: :to_s, script: :to_s, bindings: :to_hash
-      define_meta_fields :channel, :in_session, :isolate, :transaction,
+      define_meta_fields :in_session, :isolate, :transaction,
                          :graph_name, :graph_obj_name
 
       def initialize(*_)
         super
         self.language_name ||= 'groovy'
         self.bindings ||= {}
-        self.channel ||= CHANNEL_MSGPACK
       end
     end
 
