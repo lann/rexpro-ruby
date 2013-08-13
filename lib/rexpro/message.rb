@@ -5,21 +5,18 @@ require 'uuid'
 
 module Rexpro
   module Message
-    PROTOCOL_VERSION = 0
+    PROTOCOL_VERSION = 1
+
+    SERIALIZER_MSGPACK = 0
+    SERIALIZER_JSON    = 1
 
     ZERO_UUID = [0, 0, 0, 0].pack('NNNN')
 
-    TYPE_ERROR                    = 0
-    TYPE_SESSION_REQUEST          = 1
-    TYPE_SESSION_RESPONSE         = 2
-    TYPE_SCRIPT_REQUEST           = 3
-    TYPE_CONSOLE_SCRIPT_RESPONSE  = 4
-    TYPE_MSGPACK_SCRIPT_RESPONSE  = 5
-    TYPE_GRAPHSON_SCRIPT_RESPONSE = 6
-
-    CHANNEL_CONSOLE  = 1
-    CHANNEL_MSGPACK  = 2
-    CHANNEL_GRAPHSON = 3
+    TYPE_ERROR            = 0
+    TYPE_SESSION_REQUEST  = 1
+    TYPE_SESSION_RESPONSE = 2
+    TYPE_SCRIPT_REQUEST   = 3
+    TYPE_SCRIPT_RESPONSE  = 5
 
     class << self
       def generate_uuid
@@ -39,12 +36,12 @@ module Rexpro
           raise RexproException, "Unknown protocol version #{version}"
         end
 
-        header = io.read(5)
-        if header.nil? || header.size < 5
+        header = io.read(10)
+        if header.nil? || header.size < 10
           raise RexproException, "Unexpected EOF: #{header.inspect}"
         end
 
-        type, size = header.unpack('CN')
+        serializer_type, reserved, type, size = header.unpack('CNCN')
         type_class = types[type]
         unless type_class
           raise RexproException, "Unknown message type #{type}"
@@ -64,6 +61,8 @@ module Rexpro
           memo[field] = value
           memo
         end
+
+        attrs[:serializer_type] = serializer_type
 
         type_class.new(attrs)
       end
@@ -113,14 +112,21 @@ module Rexpro
         end
       end
 
+      attr_reader :serializer_type
+
       def initialize(attrs = {})
+        @serializer_type = attrs.delete(:serializer_type) || SERIALIZER_MSGPACK
         self.meta ||= {}
         attrs.each { |k, v| send("#{k}=", v) }
         self.session_uuid ||= ZERO_UUID
         self.request_uuid ||= Message.generate_uuid
       end
 
-      def to_msgpack(*args)
+      def serialize_body(*args)
+        if serializer_type != SERIALIZER_MSGPACK
+          raise NotImplementedError, 'only MsgPack serialization is supported'
+        end
+
         self.class.fields.map do |field|
           value = send(field)
           field_method = self.class.field_methods[field]
@@ -130,8 +136,10 @@ module Rexpro
       end
 
       def write_to(io)
-        body = to_msgpack
-        header = [PROTOCOL_VERSION, self.class.type, body.size].pack('CCN')
+        body = serialize_body
+        header = [
+          PROTOCOL_VERSION, serializer_type, 0, self.class.type, body.size
+          ].pack('CCNCN')
         io.write(header)
         io.write(body)
       end
@@ -147,13 +155,8 @@ module Rexpro
     class SessionRequest
       include Base
       self.type = TYPE_SESSION_REQUEST
-      define_fields channel: :to_i, username: :to_s, password: :to_s
+      define_fields username: :to_s, password: :to_s
       define_meta_fields :graph_name, :graph_obj_name, :kill_session
-
-      def initialize(*_)
-        super
-        self.channel ||= CHANNEL_MSGPACK
-      end
     end
 
     class SessionResponse
@@ -167,33 +170,20 @@ module Rexpro
       include Base
       self.type = TYPE_SCRIPT_REQUEST
       define_fields language_name: :to_s, script: :to_s, bindings: :to_hash
-      define_meta_fields :channel, :in_session, :isolate, :transaction,
+      define_meta_fields :in_session, :isolate, :transaction,
                          :graph_name, :graph_obj_name
 
       def initialize(*_)
         super
         self.language_name ||= 'groovy'
         self.bindings ||= {}
-        self.channel ||= CHANNEL_MSGPACK
       end
     end
 
-    class ConsoleScriptResponse
+    class ScriptResponse
       include Base
-      self.type = TYPE_CONSOLE_SCRIPT_RESPONSE
-      define_fields console_lines: :to_a, bindings: :to_hash
-    end
-
-    class MsgpackScriptResponse
-      include Base
-      self.type = TYPE_MSGPACK_SCRIPT_RESPONSE
+      self.type = TYPE_SCRIPT_RESPONSE
       define_fields results: nil, bindings: :to_hash
-    end
-
-    class GraphsonScriptResponse
-      include Base
-      self.type = TYPE_GRAPHSON_SCRIPT_RESPONSE
-      define_fields results: :to_s, bindings: :to_hash
     end
   end
 end

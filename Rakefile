@@ -22,7 +22,7 @@ Rake::TestTask.new do |test|
   test.test_files = ['spec/**/*_spec.rb']
 end
 
-REXSTER_SERVER_URL = 'http://tinkerpop.com/downloads/rexster/rexster-server-2.3.0.zip'
+REXSTER_SERVER_URL = 'http://tinkerpop.com/downloads/rexster/rexster-server-2.4.0.zip'
 
 desc 'Install and run rexster-server'
 task :run_rexster do

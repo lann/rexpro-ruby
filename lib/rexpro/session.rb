@@ -1,10 +1,10 @@
 require 'rexpro'
 
 class Rexpro::Session
-  attr_reader :client, :uuid, :channel, :languages
+  attr_reader :client, :uuid, :languages
 
-  def initialize(client, uuid, channel, languages = nil)
-    @client, @uuid, @channel, @languages = client, uuid, channel, languages
+  def initialize(client, uuid, languages = nil)
+    @client, @uuid, @languages = client, uuid, languages
   end
 
   def kill
@@ -15,7 +15,7 @@ class Rexpro::Session
 
   def execute(script, attrs = {})
     attrs = attrs.merge(
-      session_uuid: uuid, channel: channel, in_session: true, script: script)
+      session_uuid: uuid, in_session: true, script: script)
     msg = Rexpro::Message::ScriptRequest.new(attrs)
     client.request(msg)
   end

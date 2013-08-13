@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lann/rexpro-ruby.png)](https://travis-ci.org/lann/rexpro-ruby)
 
-Tested against rexster-server-2.3.0 on Ruby 1.9.3 and 2.0.0.
+Tested against rexster-server-2.4.0 on Ruby 1.9.3 and 2.0.0.
 
 https://github.com/tinkerpop/rexster/wiki/RexPro
 

@@ -19,8 +19,8 @@ describe Rexpro::Message do
   end
 
   describe '.read_from' do
-    let(:data) { "\x00\x00\x00\x00\x00/\x94\xB01234567812345678" +
-                 "\xB0abcdefghijklmnop\x81\xA4flag\a\xA4boom" }
+    let(:data) { "\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00/\x94\xB0" +
+                 "1234567812345678\xB0abcdefghijklmnop\x81\xA4flag\a\xA4boom" }
     let(:io) { StringIO.new data }
     let(:msg) { Rexpro::Message.read_from(io) }
 
@@ -50,8 +50,8 @@ describe Rexpro::Message::SessionRequest do
     it 'correctly writes to the io object' do
       subject.session_uuid = 'abcdefghijklmnop'
       subject.write_to(io)
-      io.string.must_equal "\x00\x01\x00\x00\x00'\x96\xB0abcdefghijklmnop" +
-                           "\xB01234567812345678\x80\x02\xA0\xA0"
+      io.string.must_equal "\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00&\x95\xB0abcdefghijklmnop" +
+                           "\xB01234567812345678\x80\xA0\xA0"
     end
 
     it 'is symmetrical with .read_from' do
