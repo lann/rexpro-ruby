@@ -8,6 +8,11 @@ https://github.com/tinkerpop/rexster/wiki/RexPro
 
 ## Installation
 
+**NOTE: Version 1.x breaks compatibility with rexster-server-2.3 and below!**
+
+Use 0.x gem versions for older versions of rexster, or follow the protocol-0
+branch which may still recieve critical updates.
+
 Add this line to your application's Gemfile:
 
     gem 'rexpro'

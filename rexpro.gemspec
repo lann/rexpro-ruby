@@ -16,6 +16,14 @@ DESC
   spec.homepage      = "https://github.com/lann/rexpro-ruby"
   spec.license       = "MIT"
 
+  spec.post_install_message = <<-MESSAGE
+
+!   ***UPDGRADE WARNING***
+!   rexpro-ruby 1.x breaks compatibility with rexster-server-2.3 and below.
+!   Continue using 0.x versions if you cannot upgrade rexster.
+
+  MESSAGE
+
   spec.files         = `git ls-files`.split($/)
   spec.test_files    = spec.files.grep(%r{^spec/})
   spec.require_paths = ["lib"]
