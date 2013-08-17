@@ -171,7 +171,7 @@ module Rexpro
       self.type = TYPE_SCRIPT_REQUEST
       define_fields language_name: :to_s, script: :to_s, bindings: :to_hash
       define_meta_fields :in_session, :isolate, :transaction,
-                         :graph_name, :graph_obj_name
+                         :graph_name, :graph_obj_name, :console
 
       def initialize(*_)
         super
