@@ -50,8 +50,8 @@ describe Rexpro::Message::SessionRequest do
     it 'correctly writes to the io object' do
       subject.session_uuid = 'abcdefghijklmnop'
       subject.write_to(io)
-      io.string.must_equal "\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00&\x95\xB0abcdefghijklmnop" +
-                           "\xB01234567812345678\x80\xA0\xA0"
+      io.string.must_equal "\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00&\x95\xB0" +
+                           "abcdefghijklmnop\xB01234567812345678\x80\xA0\xA0"
     end
 
     it 'is symmetrical with .read_from' do
@@ -60,6 +60,24 @@ describe Rexpro::Message::SessionRequest do
       msg = Rexpro::Message.read_from(io)
       msg.must_be_instance_of Rexpro::Message::SessionRequest
       msg.request_uuid.must_equal subject.request_uuid
+    end
+
+    describe 'write count' do
+      class WriteCounter
+        attr_accessor :write_count
+
+        def write(*)
+          @write_count ||= 0
+          @write_count += 1
+        end
+      end
+
+      let(:io) { WriteCounter.new }
+
+      it 'makes only one .write call' do
+        subject.write_to(io)
+        io.write_count.must_equal 1
+      end
     end
   end
 end

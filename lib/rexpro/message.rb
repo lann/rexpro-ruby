@@ -140,8 +140,7 @@ module Rexpro
         header = [
           PROTOCOL_VERSION, serializer_type, 0, self.class.type, body.size
           ].pack('CCNCN')
-        io.write(header)
-        io.write(body)
+        io.write(header + body)
       end
     end
 
