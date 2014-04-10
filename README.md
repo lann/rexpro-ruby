@@ -32,7 +32,7 @@ require 'rexpro'
 
 client = Rexpro::Client.new(host: 'localhost', port: 8184) # defaults
 
-response = client.execute('g.v(2)', graph_name: 'tinkergraph')
+response = client.execute('g.v(vid)', graph_name: 'tinkergraph', bindings: {vid: 2})
 
 response.results
 => {"_id"=>"2", "_type"=>"vertex", "_properties"=>{"name"=>"vadas", "age"=>27}}
