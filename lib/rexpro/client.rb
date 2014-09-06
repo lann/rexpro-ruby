@@ -38,16 +38,16 @@ module Rexpro
       req.write_to(@socket)
 
       Rexpro::Message.read_from(@socket).tap do |resp|
-        if resp.request_uuid.bytes.to_a != req.request_uuid.bytes.to_a
-          @socket.close
-          raise Rexpro::RexproException,
-                "request uuid of response didn't match request"
-        end
-
         if resp.is_a? Rexpro::Message::Error
           err_msg = resp.error_message
           err_msg << " [flag=#{resp.flag}]" if resp.flag
           raise Rexpro::RexproError.new(err_msg)
+        end
+        
+        if resp.request_uuid.bytes.to_a != req.request_uuid.bytes.to_a
+          @socket.close
+          raise Rexpro::RexproException,
+                "request uuid of response didn't match request"
         end
       end
     rescue TCPTimeout::SocketTimeout => ex
