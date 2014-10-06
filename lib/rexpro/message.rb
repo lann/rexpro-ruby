@@ -55,10 +55,8 @@ module Rexpro
                 "Expected #{fields.length} fields, got #{array_size}"
         end
 
-        values = unpacker.read
-
-        attrs = fields.zip(values).inject({}) do |memo, (field, value)|
-          memo[field] = value
+        attrs = fields.inject({}) do |memo, field|
+          memo[field] = unpacker.read
           memo
         end
 
